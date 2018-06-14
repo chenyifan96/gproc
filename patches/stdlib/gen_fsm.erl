@@ -255,7 +255,12 @@ enter_loop(Mod, Options, StateName, StateData, Timeout) ->
 enter_loop(Mod, Options, StateName, StateData, ServerName, Timeout) ->
     Name = get_proc_name(ServerName),
     Parent = get_parent(),
-    Debug = gen:debug_options(Options),
+    Debug = try gen:debug_options(Name, Options) of
+                DebugT -> DebugT
+            catch
+                _:_ ->
+                    gen:debug_options(Options)
+            end,
     loop(Parent, Name, StateName, StateData, Mod, Timeout, Debug).
 
 get_proc_name(Pid) when is_pid(Pid) ->
@@ -312,7 +317,12 @@ name_to_pid(Name) ->
 init_it(Starter, self, Name, Mod, Args, Options) ->
     init_it(Starter, self(), Name, Mod, Args, Options);
 init_it(Starter, Parent, Name, Mod, Args, Options) ->
-    Debug = gen:debug_options(Options),
+    Debug = try gen:debug_options(Name, Options) of
+                DebugT -> DebugT
+            catch
+                _:_ ->
+                    gen:debug_options(Options)
+            end,
     gen:reg_behaviour(?MODULE),
     case catch Mod:init(Args) of
 	{ok, StateName, StateData} ->

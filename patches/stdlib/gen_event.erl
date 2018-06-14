@@ -123,7 +123,12 @@ init_it(Starter, self, Name, Mod, Args, Options) ->
 init_it(Starter, Parent, Name, _, _, Options) ->
     process_flag(trap_exit, true),
     gen:reg_behaviour(?MODULE),
-    Debug = gen:debug_options(Options),
+    Debug = try gen:debug_options(Name, Options) of
+                DebugT -> DebugT
+            catch
+                _:_ ->
+                    gen:debug_options(Options)
+            end,
     proc_lib:init_ack(Starter, {ok, self()}),
     loop(Parent, Name, [], Debug).
 
